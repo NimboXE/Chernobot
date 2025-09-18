@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЧЕРНОБЫЛЬ - Sistema de Monitoramento</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+        
+        :root {
+            --primary-green: #00ff41;
+            --dark-green: #003d10;
+            --toxic-green: #39ff14;
+            --warning-green: #7fff00;
+            --bg-dark: #0a0a0a;
+            --bg-darker: #050505;
+            --panel-bg: rgba(0, 20, 0, 0.8);
+            --border-glow: 0 0 10px var(--primary-green);
+            --text-glow: 0 0 5px var(--primary-green);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: var(--bg-dark);
+            color: var(--primary-green);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 65, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(57, 255, 20, 0.1) 0%, transparent 50%),
+                linear-gradient(180deg, #000 0%, #001a00 100%);
+        }
+
+        /* Background Animation */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--toxic-green);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+            opacity: 0.3;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.3;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 1rem;
+            border-bottom: 2px solid var(--primary-green);
+            box-shadow: var(--border-glow);
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 900;
+            text-shadow: var(--text-glow);
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        .cyrillic {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        @keyframes pulse-glow {
+            from {
+                text-shadow: 0 0 5px var(--primary-green);
+            }
+            to {
+                text-shadow: 0 0 20px var(--toxic-green), 0 0 30px var(--primary-green);
+            }
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .status-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--toxic-green);
+            animation: blink 1.5s infinite;
+            box-shadow: 0 0 10px var(--toxic-green);
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Data Panels */
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--primary-green);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--border-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--toxic-green), transparent);
+            animation: scan 3s infinite;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--warning-green);
+            border-radius: 2px;
+            animation: flicker 0.5s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        /* Radiation Meter */
+        .radiation-meter {
+            position: relative;
+            height: 200px;
+            border: 2px solid var(--primary-green);
+            border-radius: 10px;
+            background: radial-gradient(circle, rgba(0, 255, 65, 0.1) 0%, transparent 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .radiation-level {
+            font-size: 3rem;
+            font-weight: 900;
+            text-shadow: 0 0 20px var(--toxic-green);
+            animation: radiation-pulse 1s infinite;
+        }
+
+        @keyframes radiation-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .radiation-unit {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-left: 10px;
+        }
+
+        /* Temperature Bars */
+        .temp-bars {
+            display: flex;
+            justify-content: space-between;
+            height: 150px;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .temp-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--toxic-green), var(--primary-green));
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            animation: temp-rise 2s infinite alternate;
+            min-height: 20px;
+        }
+
+        .temp-bar:nth-child(1) { height: 60%; animation-delay: 0s; }
+        .temp-bar:nth-child(2) { height: 80%; animation-delay: 0.5s; }
+        .temp-bar:nth-child(3) { height: 95%; animation-delay: 1s; }
+        .temp-bar:nth-child(4) { height: 70%; animation-delay: 1.5s; }
+
+        @keyframes temp-rise {
+            0% { box-shadow: 0 0 5px var(--primary-green); }
+            100% { box-shadow: 0 0 15px var(--toxic-green); }
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 255, 65, 0.3);
+        }
+
+        .data-table th {
+            background: rgba(0, 255, 65, 0.1);
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .data-table td {
+            animation: data-update 3s infinite;
+        }
+
+        @keyframes data-update {
+            0%, 95% { opacity: 1; }
+            96%, 100% { opacity: 0.5; }
+        }
+
+        /* Warning System */
+        .warning-panel {
+            background: rgba(255, 0, 0, 0.1);
+            border-color: #ff0000;
+            animation: warning-pulse 1.5s infinite;
+        }
+
+        @keyframes warning-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 10px #ff0000;
+                border-color: #ff0000;
+            }
+            50% { 
+                box-shadow: 0 0 20px #ff3333;
+                border-color: #ff3333;
+            }
+        }
+
+        .warning-text {
+            color: #ff3333;
+            font-weight: 700;
+            text-transform: uppercase;
+            animation: urgent-flash 0.8s infinite;
+        }
+
+        @keyframes urgent-flash {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.6; }
+        }
+
+        /* Control Buttons */
+        .control-panel {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            background: transparent;
+            border: 2px solid var(--primary-green);
+            color: var(--primary-green);
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: var(--primary-green);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--primary-green);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                margin: 1rem;
+                padding: 0;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            /* Responsive adjustments for camera */
+            .camera-panel {
+                grid-column: span 1;
+            }
+            
+            .control-row {
+                flex-direction: column;
+            }
+            
+            .btn-small {
+                min-width: auto;
+            }
+        }
+
+        /* Soviet-style decorative elements */
+        .soviet-star {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 16px;
+            height: 16px;
+            background: var(--warning-green);
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: rotate-star 10s linear infinite;
+        }
+
+        /* Camera Panel Styles */
+        .camera-panel {
+            grid-column: span 2;
+            min-height: 400px;
+        }
+
+        .camera-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .camera-feed {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border: 2px solid var(--primary-green);
+            border-radius: 8px;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 30% 40%, rgba(0, 255, 65, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(57, 255, 20, 0.08) 0%, transparent 50%),
+                linear-gradient(45deg, transparent 49%, rgba(0, 255, 65, 0.03) 50%, transparent 51%);
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .camera-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .camera-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .record-indicator {
+            color: #ff0000;
+            font-size: 1.2rem;
+            animation: record-blink 1s infinite;
+        }
+
+        @keyframes record-blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .camera-timestamp {
+            opacity: 0.8;
+        }
+
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+        }
+
+        .crosshair-line {
+            position: absolute;
+            background: var(--primary-green);
+            opacity: 0.6;
+        }
+
+        .crosshair-h {
+            width: 40px;
+            height: 1px;
+            top: 50%;
+            left: 0;
+        }
+
+        .crosshair-v {
+            width: 1px;
+            height: 40px;
+            left: 50%;
+            top: 0;
+        }
+
+        .radiation-warning {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--toxic-green);
+            animation: warning-flash 2s infinite;
+            text-align: center;
+        }
+
+        @keyframes warning-flash {
+            0%, 70% { opacity: 0.7; }
+            71%, 85% { opacity: 1; }
+            86%, 100% { opacity: 0.7; }
+        }
+
+        .camera-static {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="static" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="1" height="1" fill="%23003300" opacity="0.3"/><rect x="2" y="2" width="1" height="1" fill="%2300ff00" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23static)"/></svg>') repeat;
+            opacity: 0.3;
+            animation: static-noise 0.1s infinite;
+            z-index: 1;
+        }
+
+        @keyframes static-noise {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            50% { transform: translateX(1px); }
+            75% { transform: translateX(-1px); }
+            100% { transform: translateX(0); }
+        }
+
+        .camera-scanlines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                transparent 50%,
+                rgba(0, 255, 65, 0.02) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .camera-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--primary-green);
+            color: var(--primary-green);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-small:hover {
+            background: var(--primary-green);
+            color: var(--bg-dark);
+            box-shadow: 0 0 10px var(--primary-green);
+        }
+
+        .btn-small.active {
+            background: var(--toxic-green);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--toxic-green);
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-particles" id="particles"></div>
+    
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <div class="logo">ЧЕРНОБЫЛЬ</div>
+                <div class="cyrillic">Sistema de Monitoramento Nuclear</div>
+            </div>
+            <div class="status-indicator">
+                <div class="status-light"></div>
+                <span>SISTEMA ATIVO</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard">
+        <div class="panel">
+            <div class="soviet-star"></div>
+            <h2 class="panel-title">
+                <div class="panel-icon"></div>
+                Nível de Radiação
+            </h2>
+            <div class="radiation-meter">
+                <span class="radiation-level">3.6<span class="radiation-unit">R/h</span></span>
+            </div>
+            <div class="control-panel">
+                <button class="btn" onclick="updateRadiation()">Atualizar</button>
+                <button class="btn" onclick="resetSystem()">Reset</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="soviet-star"></div>
+            <h2 class="panel-title">
+                <div class="panel-icon"></div>
+                Temperatura dos Reatores
+            </h2>
+            <div class="temp-bars">
+                <div class="temp-bar"></div>
+                <div class="temp-bar"></div>
+                <div class="temp-bar"></div>
+                <div class="temp-bar"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem;">
+                <span>R1</span><span>R2</span><span>R3</span><span>R4</span>
+            </div>
+        </div>
+
+        <div class="panel warning-panel">
+            <div class="soviet-star"></div>
+            <h2 class="panel-title warning-text">
+                <div class="panel-icon"></div>
+                Status de Alerta
+            </h2>
+            <div class="warning-text" style="font-size: 1.5rem; text-align: center; margin: 2rem 0;">
+                ATENÇÃO: NÍVEIS ELEVADOS DETECTADOS
+            </div>
+            <div style="text-align: center; font-family: 'Share Tech Mono', monospace;">
+                Último evento: 26.04.1986 01:23:40
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="soviet-star"></div>
+            <h2 class="panel-title">
+                <div class="panel-icon"></div>
+                Dados dos Sensores
+            </h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Sensor</th>
+                        <th>Valor</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="sensorData">
+                    <tr>
+                        <td>Geiger-01</td>
+                        <td>15.6 μSv/h</td>
+                        <td style="color: var(--toxic-green);">ATIVO</td>
+                    </tr>
+                    <tr>
+                        <td>Temp-01</td>
+                        <td>2847°C</td>
+                        <td style="color: #ff3333;">CRÍTICO</td>
+                    </tr>
+                    <tr>
+                        <td>Press-01</td>
+                        <td>1.2 atm</td>
+                        <td style="color: var(--warning-green);">NORMAL</td>
+                    </tr>
+                    <tr>
+                        <td>Humid-01</td>
+                        <td>67%</td>
+                        <td style="color: var(--toxic-green);">ATIVO</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="panel">
+            <div class="soviet-star"></div>
+            <h2 class="panel-title">
+                <div class="panel-icon"></div>
+                Log do Sistema
+            </h2>
+            <div id="systemLog" style="font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; height: 200px; overflow-y: auto; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px;">
+                <div>[01:23:40] Sistema inicializado</div>
+                <div>[01:23:41] Conectando sensores...</div>
+                <div>[01:23:45] Calibrando detector Geiger</div>
+                <div>[01:23:50] Todos os sistemas operacionais</div>
+                <div>[01:24:15] Anomalia detectada no reator 4</div>
+                <div style="color: #ff3333;">[01:24:30] ALERTA: Temperatura crítica</div>
+                <div style="color: #ff3333;">[01:24:45] EMERGÊNCIA: Evacuação recomendada</div>
+            </div>
+        </div>
+
+        <div class="panel camera-panel">
+            <div class="soviet-star"></div>
+            <h2 class="panel-title">
+                <div class="panel-icon"></div>
+                Câmera de Vigilância - Setor 4
+            </h2>
+            <div class="camera-container">
+                <div class="camera-feed">
+                    <div class="camera-overlay">
+                        <div class="camera-info">
+                            <div class="camera-status">
+                                <span class="record-indicator">●</span>
+                                <span>REC</span>
+                            </div>
+                            <div class="camera-timestamp" id="cameraTime">26.04.1986 01:24:15</div>
+                        </div>
+                        <div class="crosshair">
+                            <div class="crosshair-line crosshair-h"></div>
+                            <div class="crosshair-line crosshair-v"></div>
+                        </div>
+                        <div class="radiation-warning">
+                            ☢ ÁREA CONTAMINADA ☢
+                        </div>
+                    </div>
+                    <div class="camera-static"></div>
+                    <div class="camera-scanlines"></div>
+                </div>
+                <div class="camera-controls">
+                    <div class="control-row">
+                        <button class="btn-small" onclick="zoomIn()">ZOOM +</button>
+                        <button class="btn-small" onclick="zoomOut()">ZOOM -</button>
+                        <button class="btn-small" onclick="toggleNightVision()">VISÃO NOTURNA</button>
+                    </div>
+                    <div class="control-row">
+                        <button class="btn-small" onclick="panLeft()">← PAN</button>
+                        <button class="btn-small" onclick="panRight()">PAN →</button>
+                        <button class="btn-small" onclick="takeSnapshot()">CAPTURAR</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            
+            setInterval(() => {
+                if (particlesContainer.children.length < 20) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + 'vw';
+                    particle.style.width = particle.style.height = Math.random() * 4 + 2 + 'px';
+                    particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                    particle.style.animationDelay = Math.random() * 2 + 's';
+                    
+                    particlesContainer.appendChild(particle);
+                    
+                    // Remove particle after animation
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 8000);
+                }
+            }, 300);
+        }
+
+        // Simulate real-time data updates
+        function updateSensorData() {
+            const sensorData = document.getElementById('sensorData');
+            const rows = sensorData.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if (cells.length > 1) {
+                    // Simulate data fluctuation
+                    const currentValue = cells[1].textContent;
+                    if (currentValue.includes('μSv/h')) {
+                        const newValue = (Math.random() * 20 + 10).toFixed(1);
+                        cells[1].textContent = newValue + ' μSv/h';
+                    } else if (currentValue.includes('°C')) {
+                        const newValue = Math.floor(Math.random() * 200 + 2800);
+                        cells[1].textContent = newValue + '°C';
+                    } else if (currentValue.includes('atm')) {
+                        const newValue = (Math.random() * 0.5 + 1).toFixed(1);
+                        cells[1].textContent = newValue + ' atm';
+                    } else if (currentValue.includes('%')) {
+                        const newValue = Math.floor(Math.random() * 30 + 55);
+                        cells[1].textContent = newValue + '%';
+                    }
+                }
+            }
+        }
+
+        // Update radiation level
+        function updateRadiation() {
+            const radiationLevel = document.querySelector('.radiation-level');
+            const newLevel = (Math.random() * 5 + 1).toFixed(1);
+            radiationLevel.innerHTML = newLevel + '<span class="radiation-unit">R/h</span>';
+            
+            // Add log entry
+            addLogEntry(`Radiação atualizada: ${newLevel} R/h`);
+        }
+
+        // Add entry to system log
+        function addLogEntry(message) {
+            const log = document.getElementById('systemLog');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.textContent = `[${time}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Camera control functions
+        let cameraZoom = 1;
+        let cameraPan = 0;
+        let nightVisionActive = false;
+
+        function updateCameraTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }).replace(',', '');
+            document.getElementById('cameraTime').textContent = timeString;
+        }
+
+        function zoomIn() {
+            if (cameraZoom < 3) {
+                cameraZoom += 0.5;
+                const feed = document.querySelector('.camera-feed');
+                feed.style.transform = `scale(${cameraZoom}) translateX(${cameraPan}px)`;
+                addLogEntry(`Zoom aumentado para ${cameraZoom}x`);
+            }
+        }
+
+        function zoomOut() {
+            if (cameraZoom > 1) {
+                cameraZoom -= 0.5;
+                const feed = document.querySelector('.camera-feed');
+                feed.style.transform = `scale(${cameraZoom}) translateX(${cameraPan}px)`;
+                addLogEntry(`Zoom reduzido para ${cameraZoom}x`);
+            }
+        }
+
+        function panLeft() {
+            cameraPan -= 20;
+            const feed = document.querySelector('.camera-feed');
+            feed.style.transform = `scale(${cameraZoom}) translateX(${cameraPan}px)`;
+            addLogEntry('Câmera movida para esquerda');
+        }
+
+        function panRight() {
+            cameraPan += 20;
+            const feed = document.querySelector('.camera-feed');
+            feed.style.transform = `scale(${cameraZoom}) translateX(${cameraPan}px)`;
+            addLogEntry('Câmera movida para direita');
+        }
+
+        function toggleNightVision() {
+            nightVisionActive = !nightVisionActive;
+            const feed = document.querySelector('.camera-feed');
+            const btn = event.target;
+            
+            if (nightVisionActive) {
+                feed.style.filter = 'hue-rotate(120deg) contrast(1.5) brightness(1.2)';
+                btn.classList.add('active');
+                addLogEntry('Visão noturna ATIVADA');
+            } else {
+                feed.style.filter = 'none';
+                btn.classList.remove('active');
+                addLogEntry('Visão noturna DESATIVADA');
+            }
+        }
+
+        function takeSnapshot() {
+            // Simulate camera flash effect
+            const feed = document.querySelector('.camera-feed');
+            feed.style.filter = 'brightness(2)';
+            setTimeout(() => {
+                feed.style.filter = nightVisionActive ? 'hue-rotate(120deg) contrast(1.5) brightness(1.2)' : 'none';
+            }, 100);
+            
+            addLogEntry('Imagem capturada e salva');
+            
+            // Simulate saving process
+            setTimeout(() => {
+                addLogEntry('Imagem transmitida para centro de controle');
+            }, 2000);
+        }
+
+        function emergencyShutdown() {
+            addLogEntry('DESLIGAMENTO DE EMERGÊNCIA ATIVADO');
+            alert('Sistema de emergência ativado!');
+        }
+
+        function activateProtocol() {
+            addLogEntry('Protocolo AZ-5 iniciado');
+            alert('Protocolo AZ-5 ativado - Inserindo barras de controle');
+        }
+
+        function ventilationSystem() {
+            addLogEntry('Sistema de ventilação ativado');
+        }
+
+        function evacuationAlert() {
+            addLogEntry('ALERTA DE EVACUAÇÃO EMITIDO');
+            alert('EVACUAÇÃO IMEDIATA REQUERIDA!');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // Update sensor data every 3 seconds
+            setInterval(updateSensorData, 3000);
+            
+            // Update camera timestamp every second
+            setInterval(updateCameraTime, 1000);
+            updateCameraTime();
+            
+            // Add periodic log entries
+            setInterval(() => {
+                const messages = [
+                    'Monitoramento contínuo ativo',
+                    'Verificando integridade dos sensores',
+                    'Dados transmitidos para centro de controle',
+                    'Sistema de backup verificado',
+                    'Câmera de vigilância operacional'
+                ];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                addLogEntry(randomMessage);
+            }, 5000);
+        });
+
+        // Add typing sound effect simulation
+        document.addEventListener('keypress', function() {
+            // Could add audio effects here
+        });
+
+        // Easter egg - Konami code
+        let konamiCode = [];
+        const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+        
+        document.addEventListener('keydown', function(e) {
+            konamiCode.push(e.code);
+            if (konamiCode.length > konamiSequence.length) {
+                konamiCode.shift();
+            }
+            
+            if (JSON.stringify(konamiCode) === JSON.stringify(konamiSequence)) {
+                addLogEntry('CÓDIGO SECRETO ATIVADO - Acesso total liberado');
+                document.body.style.filter = 'hue-rotate(180deg)';
+                setTimeout(() => {
+                    document.body.style.filter = 'none';
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
