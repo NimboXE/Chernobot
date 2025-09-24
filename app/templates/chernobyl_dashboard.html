@@ -599,37 +599,6 @@
             <div class="soviet-star"></div>
             <h2 class="panel-title">
                 <div class="panel-icon"></div>
-                Temperatura dos Reatores
-            </h2>
-            <div class="temp-bars">
-                <div class="temp-bar"></div>
-                <div class="temp-bar"></div>
-                <div class="temp-bar"></div>
-                <div class="temp-bar"></div>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-top: 10px; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem;">
-                <span>R1</span><span>R2</span><span>R3</span><span>R4</span>
-            </div>
-        </div>
-
-        <div class="panel warning-panel">
-            <div class="soviet-star"></div>
-            <h2 class="panel-title warning-text">
-                <div class="panel-icon"></div>
-                Status de Alerta
-            </h2>
-            <div class="warning-text" style="font-size: 1.5rem; text-align: center; margin: 2rem 0;">
-                ATENÇÃO: NÍVEIS ELEVADOS DETECTADOS
-            </div>
-            <div style="text-align: center; font-family: 'Share Tech Mono', monospace;">
-                Último evento: 26.04.1986 01:23:40
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="soviet-star"></div>
-            <h2 class="panel-title">
-                <div class="panel-icon"></div>
                 Dados dos Sensores
             </h2>
             <table class="data-table">
@@ -681,49 +650,6 @@
                 <div style="color: #ff3333;">[01:24:45] EMERGÊNCIA: Evacuação recomendada</div>
             </div>
         </div>
-
-        <div class="panel camera-panel">
-            <div class="soviet-star"></div>
-            <h2 class="panel-title">
-                <div class="panel-icon"></div>
-                Câmera de Vigilância - Setor 4
-            </h2>
-            <div class="camera-container">
-                <div class="camera-feed">
-                    <div class="camera-overlay">
-                        <div class="camera-info">
-                            <div class="camera-status">
-                                <span class="record-indicator">●</span>
-                                <span>REC</span>
-                            </div>
-                            <div class="camera-timestamp" id="cameraTime">26.04.1986 01:24:15</div>
-                        </div>
-                        <div class="crosshair">
-                            <div class="crosshair-line crosshair-h"></div>
-                            <div class="crosshair-line crosshair-v"></div>
-                        </div>
-                        <div class="radiation-warning">
-                            ☢ ÁREA CONTAMINADA ☢
-                        </div>
-                    </div>
-                    <div class="camera-static"></div>
-                    <div class="camera-scanlines"></div>
-                </div>
-                <div class="camera-controls">
-                    <div class="control-row">
-                        <button class="btn-small" onclick="zoomIn()">ZOOM +</button>
-                        <button class="btn-small" onclick="zoomOut()">ZOOM -</button>
-                        <button class="btn-small" onclick="toggleNightVision()">VISÃO NOTURNA</button>
-                    </div>
-                    <div class="control-row">
-                        <button class="btn-small" onclick="panLeft()">← PAN</button>
-                        <button class="btn-small" onclick="panRight()">PAN →</button>
-                        <button class="btn-small" onclick="takeSnapshot()">CAPTURAR</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </main>
 
     <script>
